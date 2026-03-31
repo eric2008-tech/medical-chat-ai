@@ -3,6 +3,7 @@ import { Message, generateResponse, getWelcomeMessage } from "./data/chatEngine"
 import { Language, translations } from "./data/translations";
 import ChatMessage from "./components/ChatMessage";
 import Sidebar from "./components/Sidebar";
+import Footer from "./components/footer";
 import ApiKeyModal from "./components/ApiKeyModal";
 import AiStatusBadge from "./components/AiStatusBadge";
 import {
@@ -12,14 +13,30 @@ import {
   clearApiKey,
 } from "./services/groqService";
 
-const QUICK_SUGGESTIONS_FR = [
-  "J'ai de la fièvre et des frissons depuis 2 jours",
-  "Comment prévenir le paludisme ?",
-  "J'ai des maux de tête et je transpire beaucoup",
-  "Où trouver un centre de santé à Cotonou ?",
-  "Je tousse depuis 3 semaines",
-  "J'ai des douleurs abdominales et de la diarrhée",
-];
+const APP_VERSION = "1.2.0";
+
+const QUICK_SUGGESTIONS: Record<Language, string[]> = {
+  fr: [
+    "J'ai de la fièvre et des frissons depuis 2 jours",
+    "Comment prévenir le paludisme ?",
+    "J'ai des maux de tête et je transpire beaucoup",
+    "Où trouver un centre de santé à Cotonou ?",
+    "Je tousse depuis 3 semaines",
+    "J'ai des douleurs abdominales et de la diarrhée",
+  ],
+  fon: [
+    "Mɔ́ nɛɖɔ̀ ɖe kɔkɔ́ gbà",
+    "Nzokɔ yè ɖe hayi ɖe ɖo",
+    "Mɛɖeɖea ɖe kɔkɔ́nɔ ɖe sa",
+  ],
+  yo: [
+    "Mo ni iba ati ìrora fun ọjọ meji",
+    "Báwo ni mo ṣe le dena arun malaria ?",
+    "Ori mi n run o si n yo eebi",
+  ],
+};
+
+const getSuggestions = (lang: Language): string[] => QUICK_SUGGESTIONS[lang] || QUICK_SUGGESTIONS.fr;
 
 export default function App() {
   const [language, setLanguage] = useState<Language>("fr");
@@ -53,7 +70,7 @@ export default function App() {
   // ── Message de bienvenue ──
   useEffect(() => {
     setMessages([getWelcomeMessage(language)]);
-  }, []);
+  }, [language]);
 
   // ── Auto-scroll ──
   useEffect(() => {
@@ -99,7 +116,8 @@ export default function App() {
         language,
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      const conversationHistory = [...messages, userMessage];
+      setMessages(conversationHistory);
       setInput("");
       setIsLoading(true);
       setShowSuggestions(false);
@@ -107,7 +125,7 @@ export default function App() {
       try {
         // Délai minimal pour UX (Groq est déjà rapide)
         const [response] = await Promise.all([
-          generateResponse(text, messages, language),
+          generateResponse(text, conversationHistory, language),
           new Promise((resolve) => setTimeout(resolve, groqConnected ? 300 : 800)),
         ]);
 
@@ -321,7 +339,7 @@ export default function App() {
                   Questions fréquentes
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {QUICK_SUGGESTIONS_FR.map((suggestion) => (
+                  {getSuggestions(language).map((suggestion) => (
                     <button
                       key={suggestion}
                       onClick={() => sendMessage(suggestion)}
@@ -424,6 +442,8 @@ export default function App() {
             </div>
           </form>
         </div>
+
+        <Footer />
       </div>
     </div>
   );
