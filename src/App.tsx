@@ -3,7 +3,7 @@ import { Message, generateResponse, getWelcomeMessage } from "./data/chatEngine"
 import { Language, translations } from "./data/translations";
 import ChatMessage from "./components/ChatMessage";
 import Sidebar from "./components/Sidebar";
-import Footer from "./components/footer";
+import Footer from "./components/Footer";
 import ApiKeyModal from "./components/ApiKeyModal";
 import AiStatusBadge from "./components/AiStatusBadge";
 import {
